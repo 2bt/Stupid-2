@@ -113,14 +113,14 @@ class Suck(Entity):
 		self.q = (self.q + Stupid.key_state(K_c, True)) % 3
 		[self.eye, self.target, self.up][self.q] += d
 
-##		self.eye += d
-
 	def render_sub(self):
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS)
 
 		glPushMatrix()
-		glLoadIdentity();
+		glLoadIdentity()
+		glTranslate(0.5, 0.5, 0)
+#		gluPerspective(45*2, 1, 1, 1000)
 		gluLookAt(self.eye.x, self.eye.y, self.eye.z,
 			self.target.x, self.target.y, self.target.z,
 			self.up.x, self.up.y, self.up.z)
