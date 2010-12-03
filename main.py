@@ -97,7 +97,7 @@ class Suck(Entity):
 		self.orb = shit.Orb(5, 3).gen_list()
 		self.dot = shit.Orb(0.1).gen_list()
 
-		self.eye = vec(1, 4, 8)
+		self.eye = vec(0, 0, 7)
 		self.target = vec(0, 0, 0)
 		self.up = vec(0, 1, 0)
 
@@ -108,33 +108,35 @@ class Suck(Entity):
 			Stupid.key_state(K_h) - Stupid.key_state(K_f),
 			Stupid.key_state(K_r) - Stupid.key_state(K_z),
 			Stupid.key_state(K_g) - Stupid.key_state(K_t),
-		) * time_dif * 10
+		) * time_dif * 5
 
 		self.q = (self.q + Stupid.key_state(K_c, True)) % 3
 		[self.eye, self.target, self.up][self.q] += d
 
-	def render_sub(self):
 
-		glPushAttrib(GL_ALL_ATTRIB_BITS)
-
+	def get_projector_mat(self):
 		glPushMatrix()
 		glLoadIdentity()
 		glTranslate(0.5, 0.5, 0)
-#		gluPerspective(45*2, 1, 1, 1000)
 		gluLookAt(self.eye.x, self.eye.y, self.eye.z,
 			self.target.x, self.target.y, self.target.z,
 			self.up.x, self.up.y, self.up.z)
-		mvm = glGetFloatv(GL_MODELVIEW_MATRIX)
+		mat = glGetFloatv(GL_MODELVIEW_MATRIX)
 		glPopMatrix()
+		return zip(*mat)
 
-		mvm = zip(*mvm)
+	def render_sub(self):
 
+
+		mat = self.get_projector_mat()
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS)
 		glBindTexture(GL_TEXTURE_2D, self.tex)
 		glEnable(GL_TEXTURE_2D)
 		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR)
 		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR)
-		glTexGenfv(GL_S, GL_OBJECT_PLANE, mvm[0])
-		glTexGenfv(GL_T, GL_OBJECT_PLANE, mvm[1])
+		glTexGenfv(GL_S, GL_OBJECT_PLANE, mat[0])
+		glTexGenfv(GL_T, GL_OBJECT_PLANE, mat[1])
 
 		glEnable(GL_TEXTURE_GEN_S)
 		glEnable(GL_TEXTURE_GEN_T)
@@ -147,6 +149,10 @@ class Suck(Entity):
 		glColor(1, 0, 0)
 		glPushMatrix()
 		glTranslate(*self.eye)
+		glCallList(self.dot)
+		glPopMatrix()
+		glPushMatrix()
+		glTranslate(*self.target)
 		glCallList(self.dot)
 		glPopMatrix()
 
@@ -168,8 +174,8 @@ class Suck(Entity):
 if __name__ == "__main__":
 
 	stupid = Stupid("Stupid [ CGI - Aufgabe 2 ]")
-	stupid.add(Suck())
 	stupid.add(Contra())
+	stupid.add(Suck())
 	stupid.mainloop()
 
 
