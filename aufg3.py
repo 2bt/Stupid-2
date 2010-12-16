@@ -38,7 +38,7 @@ class ObjObject:
 				a = x[0]
 				if a in actions: actions[a](x[1:])
 		self.gen_list()
-
+		self.prepare_edges()
 
 	def gen_list(self):
 		self.display_list = glGenLists(1)
@@ -150,31 +150,46 @@ class ObjObject:
 
 
 
+	def prepare_edges(self):
 
-	def render_silhouette_raw(self, eye_pos):
+		class Edge: pass
 
 		faces = [[x[0] for x in face] for face in self.faces]
 		verts = [vec(*vert) for vert in self.vertices]
-		edges = {}
+
+		edge_dict = {}
+		self.edges = []
+
 		for face in faces:
-			a, b, c = [vec(*self.vertices[v - 1]) for v in face[:3]]
+			a, b, c = [verts[v - 1] for v in face[:3]]
 			ab = b - a
 			ac = c - a
 			n = ab.cross(ac).normalize()
 			for i, j in zip(face, face[1:]+[face[0]]):
-				edges[(i, j)] = n
+				edge_dict[(i, j)] = n
 
-
-		glBegin(GL_LINES)
-		for (i, j), normal in edges.iteritems():
+		for (i, j), n in edge_dict.iteritems():
+			if i > j: continue
 			try:
-				d = verts[i - 1] - eye_pos
-				normal2 = edges[(j, i)]
-				if d.dot(normal) * d.dot(normal2) <= 0:
-					glVertex(verts[i - 1])
-					glVertex(verts[j - 1])
+				edge = Edge()
+				edge.a = verts[i - 1]
+				edge.b = verts[j - 1]
+				edge.n1 = n
+				edge.n2 = edge_dict[(j, i)]
+				self.edges.append(edge)
 			except: pass
+
+
+
+	def render_silhouette_raw(self, eye_pos):
+		glBegin(GL_LINES)
+		for edge in self.edges:
+			d = edge.a - eye_pos
+			if edge.n1.dot(d) * edge.n2.dot(d) <= 0:
+				glVertex(edge.a)
+				glVertex(edge.b)
 		glEnd()
+
 
 class Squeeze(Entity):
 
@@ -191,7 +206,7 @@ class Squeeze(Entity):
 		self.silhouette = True
 
 	def render_sub(self):
-		glColor(1, 1, 0)
+		glColor(1, 0, 1)
 #		self.obj.render()
 
 		if self.silhouette:
