@@ -150,6 +150,39 @@ class ObjObject:
 
 
 
+
+	def render_silhouette_raw(self, eye_pos):
+
+		faces = [[x[0] for x in face] for face in self.faces]
+		verts = [vec(*vert) for vert in self.vertices]
+		edges = {}
+		for face in faces:
+			a, b, c = [vec(*self.vertices[v - 1]) for v in face[:3]]
+			ab = b - a
+			ac = c - a
+			n = ab.cross(ac).normalize()
+			for i, j in zip(face, face[1:]+[face[0]]):
+				edges[(i, j)] = n
+
+		sil = []
+		for (i, j), normal in edges.iteritems():
+			try:
+				d = verts[i - 1] - eye_pos
+				normal2 = edges[(j, i)]
+				m1 = d.dot(normal)
+				m2 = d.dot(normal2)
+				if m1 * m2 <= 0: sil.append((i, j))
+			except:
+				sil.append((i, j))
+
+		glBegin(GL_LINES)
+		for i, j in sil:
+			glVertex(verts[i-1])
+			glVertex(verts[j-1])
+		glEnd()
+
+
+
 class Squeeze(Entity):
 
 	def __init__(self, obj_name):
@@ -162,10 +195,18 @@ class Squeeze(Entity):
 		self.sigma = 0.01
 		self.alpha = 0.3
 
+		self.silhouette = True
 
 	def render_sub(self):
 		glColor(1, 1, 0)
 		self.obj.render()
+		
+		if self.silhouette:
+			glDisable(GL_LIGHTING)
+			glLineWidth(2)
+			glColor(1, 0, 0)
+			self.obj.render_silhouette_raw(get_eye().pos)
+			glEnable(GL_LIGHTING)
 
 		glColor(1, 1, 1)
 		font.put(5, 100, "surface: %s" % self.surface)
@@ -190,16 +231,25 @@ class Squeeze(Entity):
 		if Stupid.key_state(K_v, True):
 			self.obj.smooth(self.alpha)
 
+		if Stupid.key_state(K_b, True):
+			self.silhouette = not self.silhouette
 
 		self.sigma += (Stupid.key_state(K_r, True) - Stupid.key_state(K_f, True)) * 0.01
 		self.alpha += (Stupid.key_state(K_t, True) - Stupid.key_state(K_g, True)) * 0.01
 
 
 
+# evil hack
+def get_eye():
+	global eye
+	return eye
 
 if __name__ == "__main__":
 
 	stupid = Stupid("Stupid [ CGI - Aufgabe 3 ]")
+	global eye
+	eye = stupid.eye
+
 	stupid.add(Squeeze(sys.argv[1]))
 	stupid.mainloop()
 
