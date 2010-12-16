@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 
 import pygame
+import sys
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -49,27 +50,41 @@ class ObjObject:
 		glCallList(self.display_list)
 
 	def render_raw(self):
+
 		for face in self.faces:
 			glBegin(GL_TRIANGLE_FAN)
+
+			if not face[0][2]:
+				a, b, c = [vec(*self.vertices[f[0] - 1]) for f in face[:3]]
+				ab = b - a
+				ac = c - a
+				try:
+					n = ab.cross(ac).normalize()
+					glNormal(*n)
+				except ZeroDivisionError: pass
+
 			for v, t, n in face:
 				if n: glNormal(*self.normals[n - 1])
 				glVertex(self.vertices[v - 1])
+
 			glEnd()
 
 
 class Squeeze(Entity):
-	def __init__(self):
+
+	def __init__(self, obj_name):
 		Entity.__init__(self)
-		self.obj = ObjObject("datasets/bunny.obj")
+		self.obj = ObjObject(obj_name)
 
 	def render_sub(self):
 		glColor(1, 1, 0)
 		self.obj.render()
 
+
 if __name__ == "__main__":
 
 	stupid = Stupid("Stupid [ CGI - Aufgabe 3 ]")
-	stupid.add(Squeeze())
+	stupid.add(Squeeze(sys.argv[1]))
 	stupid.mainloop()
 
 
