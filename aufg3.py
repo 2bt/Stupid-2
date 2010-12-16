@@ -13,17 +13,40 @@ import font
 import savage as shit
 from vec import vec
 
-def face_voodoo(f):
-	m = (f.split("/") + [0, 0])[:3]
-	return tuple(int(i) if i else None for i in m)
+
+def face_surface(face):
+	if len(face) != 3:
+		raise NotImplementedError("Only triangles allowed")
+	a = (face[1] - face[0]).size()
+	b = (face[2] - face[0]).size()
+	c = (face[1] - face[2]).size()
+	s = (a + b + c) / 2
+	return (s * (s - a) * (s - b) * (s - c)) ** 0.5
+
+def surface(mesh):
+	return sum(face_surface(face) for face in mesh.vect_faces())
+
+def volume(mesh):
+	return 1.0 / 6 * sum(a * b.cross(c) for a, b, c in mesh.vect_faces())
+
+
+
+
+
+
+
 
 class ObjObject:
 
 	def __init__(self, filename):
 		self.vertices = v = []
 		self.normals = n = []
-		self.textures = t = []
+		self.tex_coords = t = []
 		self.faces = f = []
+
+		def face_voodoo(f):
+			m = (f.split("/") + [0, 0])[:3]
+			return tuple(int(i) if i else None for i in m)
 
 		actions = {
 			"v" : lambda x : v.append(tuple(float(i) for i in x)),
@@ -50,24 +73,43 @@ class ObjObject:
 		glCallList(self.display_list)
 
 	def render_raw(self):
-
 		for face in self.faces:
 			glBegin(GL_TRIANGLE_FAN)
-
 			if not face[0][2]:
 				a, b, c = [vec(*self.vertices[f[0] - 1]) for f in face[:3]]
 				ab = b - a
 				ac = c - a
-				try:
-					n = ab.cross(ac).normalize()
-					glNormal(*n)
+				try: glNormal(*ab.cross(ac).normalize())
 				except ZeroDivisionError: pass
-
 			for v, t, n in face:
 				if n: glNormal(*self.normals[n - 1])
 				glVertex(self.vertices[v - 1])
-
 			glEnd()
+
+
+	def save(self, filename):
+
+		def face2str(f):
+			if any(f[1:]):
+				return '/'.join(str(i) if i else "" for i in f)
+			else: return str(f[0])
+
+		parts = [
+			("v", self.vertices, str),
+			("vn", self.normals, str),
+			("vt", self.tex_coords, str),
+			("f", self.faces, face2str)
+		]
+		out = open(filename, "w")
+		for name, items, str_fun in parts:
+			for item in items:
+				out.write(name)
+				for sub in item:
+					out.write(" ")
+					out.write(str_fun(sub))
+				out.write("\n")
+		out.close()
+
 
 
 class Squeeze(Entity):
@@ -79,6 +121,10 @@ class Squeeze(Entity):
 	def render_sub(self):
 		glColor(1, 1, 0)
 		self.obj.render()
+
+	def update_sub(self, time_dif):
+		if Stupid.key_state(K_p, True):
+			self.obj.save("tmp.obj")
 
 
 if __name__ == "__main__":
