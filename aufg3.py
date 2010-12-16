@@ -164,24 +164,17 @@ class ObjObject:
 			for i, j in zip(face, face[1:]+[face[0]]):
 				edges[(i, j)] = n
 
-		sil = []
+
+		glBegin(GL_LINES)
 		for (i, j), normal in edges.iteritems():
 			try:
 				d = verts[i - 1] - eye_pos
 				normal2 = edges[(j, i)]
-				m1 = d.dot(normal)
-				m2 = d.dot(normal2)
-				if m1 * m2 <= 0: sil.append((i, j))
-			except:
-				sil.append((i, j))
-
-		glBegin(GL_LINES)
-		for i, j in sil:
-			glVertex(verts[i-1])
-			glVertex(verts[j-1])
+				if d.dot(normal) * d.dot(normal2) <= 0:
+					glVertex(verts[i - 1])
+					glVertex(verts[j - 1])
+			except: pass
 		glEnd()
-
-
 
 class Squeeze(Entity):
 
@@ -199,12 +192,12 @@ class Squeeze(Entity):
 
 	def render_sub(self):
 		glColor(1, 1, 0)
-		self.obj.render()
-		
+#		self.obj.render()
+
 		if self.silhouette:
 			glDisable(GL_LIGHTING)
-			glLineWidth(2)
-			glColor(1, 0, 0)
+			glLineWidth(5)
+			glColor(0, 0, 0)
 			self.obj.render_silhouette_raw(get_eye().pos)
 			glEnable(GL_LIGHTING)
 
