@@ -207,7 +207,7 @@ class Squeeze(Entity):
 
 	def render_sub(self):
 		glColor(1, 0, 1)
-#		self.obj.render()
+		self.obj.render()
 
 		if self.silhouette:
 			glDisable(GL_LIGHTING)
