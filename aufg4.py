@@ -1,6 +1,5 @@
 import sys,math,pygame,savage
 from stupid import*
-from vec import*
 T=glTranslate;C=glColor;V=glVertex;R=range;B=glBegin;D=glDisable
 class W(Entity):
  def __init__(S):Entity.__init__(S);S.o=savage.Orb(.1,3).gen_list();S.p=[vec(*map(eval,l.split()))for l in open("wave.txt")];m=[];exec"m=[1]+map(sum,zip(m,m[1:]))+[1];"*~-len(S.p);S.m=m;S.f=0
