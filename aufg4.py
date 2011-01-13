@@ -5,7 +5,7 @@ p=[vec(*map(eval,l.split()))for l in open("wave.txt")];l=len(p);r=range(l);v=vec
 m=[];exec"m=[1]+map(sum,zip(m,m[1:]))+[1];"*~-l
 class W(Entity):
  f=0
- def b(S,t):return sum((c*(1-t)**i*x*t**(l-i-1)for i,x,c in zip(r,p,m)),v)
+ def b(S,t):return sum((c*(1-t)**i*x*t**(l+~i)for i,x,c in zip(r,p,m)),v)
  def l(S,t):return sum((x*reduce(float.__mul__,((t*~-l-k)/(i-k+.0)for k in r if i-k))for i,x in zip(r,p)),v)
  def render(S):
 	S.f^=s.key_state(K_t,1);D(2896);D(2929);glLineWidth(5);C(.3,.3,.25)
