@@ -25,18 +25,19 @@ class Wave(Entity):
 	return sum((x*reduce(float.__mul__,((t*~-l-k)/(i-k+.0)for k in r if i-k))for i,x in zip(r,p)),vec())
  def render_sub(self):
 	for _ in[GL_LIGHTING,GL_DEPTH_TEST]:glDisable(_)
-	p=self.p
-	glLineWidth(1);glColor(.5,.5,.3)
+	p=self.p;glLineWidth(1);glColor(.5,.5,.3)
+	for x in p:glPushMatrix();glTranslate(*x);glCallList(self.o);glPopMatrix()
 	glBegin(GL_LINE_STRIP)
 	for x in p:glVertex(x)
+	glEnd();glLineWidth(5)
+	glBegin(GL_LINE_STRIP);glColor(0,0,0)
+	f=[self.l,self.b][self.f];a=f(0);glVertex(a);t=0
+	while t<1:
+	 t+=.01;b=f(t);c=b-a
+	 try:glColor(0,0,1-c.normalize().dot(d)**60)
+	 except:0
+	 glVertex(b);a=b;d=c
 	glEnd()
-	f=[self.l,self.b][self.f];t=0
-	glLineWidth(5);glColor(0,0,0)
-	glBegin(GL_LINE_STRIP)
-	while t<1.01:glVertex(f(t));t+=.01
-	glEnd()
-	glColor(1,1,1)
-	for x in p:glPushMatrix();glTranslate(*x);glCallList(self.o);glPopMatrix()
 stupid = Stupid("Stupid [ CGI - Aufgabe 4 ]")
 stupid.add(Wave())
 stupid.mainloop()
