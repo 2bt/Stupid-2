@@ -102,7 +102,7 @@ void main(void) {
 
 		self.shade.on()
 		self.shade.uniformf("light_pos", 50, 50, 50)
-		self.shade.uniformi("blinn", 0)
+		self.shade.uniformi("blinn", 1)
 		self.shade.uniformf("shininess", 1)
 		self.shade.uniformf("sections", 1)
 		self.shade.uniformf("color", 1, 0, 1, 1)
