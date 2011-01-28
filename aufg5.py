@@ -75,24 +75,13 @@ void main(void) {
 	vec3 ldir = normalize(-light_diff);
 	vec3 vdir = normalize(eye);
 	vec3 lhalf = normalize(ldir - vdir);
-	vec4 cl = color;
 	float intensity = max(dot(n, ldir), 0.0);
-
-	float foo;
-	if (blinn) foo = max(dot(n, lhalf), 0.0);
-	else  foo = max(dot(vdir, reflect(ldir, n)), 0.0);      
-
+	float foo = blinn ? max(dot(n, lhalf), 0.0) : max(dot(vdir, reflect(ldir, n)), 0.0);
 	intensity = floor(intensity * sections) / sections;
 	foo = pow(foo, shininess);
 	foo = foo > 0.1 ? 1.0 : 0.0;
-
-	cl *= ambient;
-	cl += specular * foo;
-	cl *= diffuse * intensity;
-
-	gl_FragColor = cl;
-
-	gl_FragColor = color;
+	vec4 cl = (color * ambient + specular * foo) * diffuse;
+	gl_FragColor = vec4(cl.rgb * intensity, cl.a);
 
 }
 """
@@ -102,16 +91,15 @@ void main(void) {
 
 		self.shade.on()
 		self.shade.uniformf("light_pos", 50, 50, 50)
-		self.shade.uniformi("blinn", 1)
-		self.shade.uniformf("shininess", 1)
-		self.shade.uniformf("sections", 1)
+		self.shade.uniformi("blinn", 0)
+		self.shade.uniformf("shininess", 30)
+		self.shade.uniformf("sections", 8)
 		self.shade.uniformf("color", 1, 0, 1, 1)
 		self.shade.uniformf("diffuse", 1, 1, 1, 1)
 		self.shade.uniformf("ambient", 1, 1, 1, 1)
 		self.shade.uniformf("specular", 1, 1, 1, 1)
 		self.obj.render()
 		self.shade.off()
-
 
 
 if __name__ == "__main__":
