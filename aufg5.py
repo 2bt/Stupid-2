@@ -45,8 +45,7 @@ class Trick(Entity):
 	def __init__(self, obj):
 		Entity.__init__(self)
 		self.obj = obj
-
-		v = """
+		self.shade = Shade("""
 uniform vec3 light_pos;
 varying vec3 pos, eye, normal, lpos, light_diff;
 void main(void) {
@@ -56,9 +55,7 @@ void main(void) {
 	light_diff = pos - light_pos;
 	normal = gl_NormalMatrix * gl_Normal;
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-}"""
-
-		f = """
+}""", """
 uniform bool blinn;
 uniform float shininess, sections;
 uniform vec4 color, diffuse, ambient, specular;
@@ -75,16 +72,12 @@ void main(void) {
 	foo = foo > 0.1 ? 1.0 : 0.0;
 	vec4 cl = (color * ambient + specular * foo) * diffuse;
 	gl_FragColor = vec4(cl.rgb * intensity, cl.a);
-}
-"""
-		self.shade = Shade(v, f)
-
+}""")
 		self.blinn = 0
 		self.sections = 5
 		self.shininess = 30
 
 	def render_sub(self):
-
 		self.shade.on()
 		self.shade.uniformi("blinn", self.blinn)
 		self.shade.uniformf("shininess", self.shininess)
@@ -110,12 +103,34 @@ class Phong(Entity):
 		Entity.__init__(self)
 		self.obj = obj
 
+class Normal(Entity):
+	def __init__(self, obj):
+		Entity.__init__(self)
+		self.obj = obj
+		self.shade = Shade("""
+varying vec3 rgb;
+void main(void) {
+	vec3 h = vec3(0.5, 0.5, 0.5);
+	rgb = gl_Normal * h + h;
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}""", """
+varying vec3 rgb;
+void main(void) {
+	gl_FragColor = vec4(rgb.rgb, 1);
+}""")
+
+	def render_sub(self):
+		self.shade.on()
+		self.obj.render()
+		self.shade.off()
+
 
 if __name__ == "__main__":
 	stupid = Stupid("Stupid [ CGI - Aufgabe 5 ]")
 	obj = ObjObject(sys.argv[1])
 	stupid.add(Trick(obj))
 	stupid.add(Phong(obj))
+	stupid.add(Normal(obj))
 	stupid.mainloop()
 
 
