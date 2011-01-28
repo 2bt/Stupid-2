@@ -102,6 +102,23 @@ class Phong(Entity):
 	def __init__(self, obj):
 		Entity.__init__(self)
 		self.obj = obj
+		self.shade = Shade("""
+varying vec3 rgb;
+void main(void) {
+	vec3 h = vec3(0.5, 0.5, 0.5);
+	rgb = gl_Normal * h + h;
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}""", """
+varying vec3 rgb;
+void main(void) {
+	gl_FragColor = vec4(rgb.rgb, 1);
+}""")
+
+	def render_sub(self):
+		self.shade.on()
+		self.obj.render()
+		self.shade.off()
+
 
 class Normal(Entity):
 	def __init__(self, obj):
