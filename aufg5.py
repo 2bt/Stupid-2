@@ -1,17 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-import sys
-import pygame
+import pygame, sys
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-
 from stupid import Stupid, Entity
-import font
-import savage as shit
 from vec import vec
-
 from aufg3 import ObjObject
 
 
@@ -35,11 +30,11 @@ class Shade:
 
 	def uniformf(self, name, *value):
 		l = self.get_location(name)
-		eval("glUniform%df"%len(value))(l, *value)	#wtf
+		[glUniform1f, glUniform2f, glUniform3f, glUniform4f][len(value)-1](l, *value)
 
 	def uniformi(self, name, *value):
 		l = self.get_location(name)
-		eval("glUniform%di"%len(value))(l, *value)	#wtf
+		[glUniform1i, glUniform2i, glUniform3i, glUniform4i][len(value)-1](l, *value)
 
 
 	def on(self): glUseProgram(self.prog)
@@ -47,13 +42,12 @@ class Shade:
 	def off(self): glUseProgram(GL_NONE)
 
 class Trick(Entity):
-	def __init__(self, obj_name):
+	def __init__(self, obj):
 		Entity.__init__(self)
-		self.obj = ObjObject(obj_name)
+		self.obj = obj
 
 		v = """
 uniform vec3 light_pos;
-
 varying vec3 pos, eye, normal, lpos, light_diff;
 void main(void) {
 	pos = gl_Vertex.xyz;
@@ -68,7 +62,6 @@ void main(void) {
 uniform bool blinn;
 uniform float shininess, sections;
 uniform vec4 color, diffuse, ambient, specular;
-
 varying vec3 pos, normal, eye, light_diff;
 void main(void) {
 	vec3 n = normalize(normal);
@@ -82,18 +75,21 @@ void main(void) {
 	foo = foo > 0.1 ? 1.0 : 0.0;
 	vec4 cl = (color * ambient + specular * foo) * diffuse;
 	gl_FragColor = vec4(cl.rgb * intensity, cl.a);
-
 }
 """
 		self.shade = Shade(v, f)
 
+		self.blinn = 0
+		self.sections = 5
+		self.shininess = 30
+
 	def render_sub(self):
 
 		self.shade.on()
+		self.shade.uniformi("blinn", self.blinn)
+		self.shade.uniformf("shininess", self.shininess)
+		self.shade.uniformf("sections", self.sections)
 		self.shade.uniformf("light_pos", 50, 50, 50)
-		self.shade.uniformi("blinn", 0)
-		self.shade.uniformf("shininess", 30)
-		self.shade.uniformf("sections", 8)
 		self.shade.uniformf("color", 1, 0, 1, 1)
 		self.shade.uniformf("diffuse", 1, 1, 1, 1)
 		self.shade.uniformf("ambient", 1, 1, 1, 1)
@@ -101,11 +97,25 @@ void main(void) {
 		self.obj.render()
 		self.shade.off()
 
+	def update_sub(self, dt):
+		self.blinn ^= Stupid.key_state(K_b, True)
+		self.sections += Stupid.key_state(K_r, True)
+		self.sections -= Stupid.key_state(K_f, True)
+		self.shininess += Stupid.key_state(K_t, True)
+		self.shininess -= Stupid.key_state(K_g, True)
+
+
+class Phong(Entity):
+	def __init__(self, obj):
+		Entity.__init__(self)
+		self.obj = obj
+
 
 if __name__ == "__main__":
-
 	stupid = Stupid("Stupid [ CGI - Aufgabe 5 ]")
-	stupid.add(Trick(sys.argv[1]))
+	obj = ObjObject(sys.argv[1])
+	stupid.add(Trick(obj))
+	stupid.add(Phong(obj))
 	stupid.mainloop()
 
 
