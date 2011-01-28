@@ -120,15 +120,15 @@ class Normal(Entity):
 		Entity.__init__(self)
 		self.obj = obj
 		self.shade = Shade("""
-varying vec3 rgb;
+varying vec3 normal;
 void main(void) {
-	vec3 h = vec3(0.5, 0.5, 0.5);
-	rgb = gl_Normal * h + h;
+	normal = gl_Normal;
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 }""", """
-varying vec3 rgb;
+varying vec3 normal;
 void main(void) {
-	gl_FragColor = vec4(rgb.rgb, 1);
+	vec3 h = vec3(0.5, 0.5, 0.5);
+	gl_FragColor = vec4(normalize(normal.xyz) * h + h, 1);
 }""")
 
 	def render_sub(self):
